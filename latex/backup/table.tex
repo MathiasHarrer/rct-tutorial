@@ -1,0 +1,108 @@
+This file is only a basic article template. For full details of \emph{The R Journal} style and information on how to prepare your article for submission, see the \href{https://journal.r-project.org/share/author-guide.pdf}{Instructions for Authors}.
+
+Introductory section which may include references in parentheses
+\citep{R}, or cite a reference such as \citet{R} in the text. This is how the programming language \textsf{R} is written in text.
+
+\begin{box-info} \\
+\textcolor{dodgerblue}{\textbf{General Note}} \\
+General notes contain relevant background information, insights, anecdotes, considerations, or take-home messages pertaining to the covered topic.
+\end{box-info}
+
+
+\begin{box-important} \\
+\textcolor{burgundyred}{\textbf{Important Note}} \\
+These boxes contain information on caveats, problems, drawbacks or pitfalls you have to keep in mind.
+\end{box-important}
+
+$$ \int_0^\infty \mathrm{e}^{-x}\,\mathrm{d}x $$
+
+
+This is a code block, followed by its output. Do not forget the \texttt{\#\#} before every line!
+
+\begin{lstlisting}
+library("foreign")
+
+foo <- rnorm(100)
+# writing a function
+bar <- apply(foo, 1, function(x){
+    y <- sqrt(x)
+    cat(paste('The result is ', x )))
+})
+bar
+str(bar)
+
+foo + bar
+\end{lstlisting}
+
+% output
+\begin{example}
+ ## [1] 123.87
+\end{example}
+
+
+\newpage
+
+\begin{table}[!htbp]
+    \caption{Overview of common problems with evaluations of RCTs in health research.}
+    \label{crouch}
+    \footnotesize
+    \begin{tabular}{  p{3cm}  p{11cm} }
+        \toprule
+\textbf{Analysis Step}      
+& \textbf{Common Problems}\\\midrule
+
+\vspace{1mm}
+\emph{Missing Data Handling}    
+
+& 
+\vspace{1mm}
+Many systematic reviews have found that, while standards have improved in recent years \citep{bell2014handling}, the missing data handling in many RCTs remains poor \citep{akl2012potential, akl2015reporting, bell2014handling, powney2014review, rabe2018missing, tan2021review}. 
+\begin{itemize}
+    \item The amount of missing data is often insufficiently reported, as is the methodology used to handle missing values.
+    \item Assumptions of the missing data handling strategy remain undiscussed (are the data assumed to be missing completely at random, missing at random, missing not at random – and why?).
+    \item Methods that are inadequate (e.g. single imputation) or based on strong assumptions (e.g. complete case analysis) are used.
+    \item Although recommended by many regulatory guidelines \citep{cro2020sensitivity}, sensitivity analyses are still underused. If sensitivity analyses are conducted, they are often not suited to test the assumptions of the main missing data handling strategy. 
+    \item While often plausible, methods that model the missing not at random (MNAR) assumption are employed very infrequently and are often poorly reported. 
+\end{itemize} \vspace{1mm} \\\hline
+\vspace{1mm}
+\emph{Baseline Covariate \newline Tests}    
+
+& \vspace{1mm} Methodologists have frequently commented that baseline covariate or "randomization tests" are superfluous, and that they should not be conducted \citep{moher2012consort, senn1994testing, altman1990randomisation, begg1990significance, de2015testing}. \newline \newline Nevertheless, these tests are frequently reported in RCT evaluations, and reviewers often demand them to show that the randomization "worked". Because $P$ values of these tests are often included in the baseline characteristics table, some refer to this as the "Table-1-Fallacy" \citep{pijls2022table}.  \vspace{2.5mm}
+\\\hline
+\vspace{1mm} \emph{Analysis Model}        
+& \vspace{1mm} Even when data was derived form a parallel-group RCT, researchers often calculate change from baseline and pre-post effect sizes to assess intervention effects. While widespread and often requested by reviewers, this approach does not account for regression to the mean and can produce highly misleading results \citep{cuijpers2017pre, bland2011comparisons, bland2015best}.
+\vspace{2.5mm} \\\hline
+
+\vspace{1mm}
+\emph{Interpretation of \newline Results}        
+
+& 
+
+\begin{itemize}
+    \item Null (viz., $p\geq$ 0.05) results are often interpreted as showing the absence of an effect, while "absence of evidence does not imply evidence of absence" \citep{altman1995statistics, alderson2004absence}. This issue also pertains to negative effects, which may be uncommon but important to detect. This problem is exacerbated by the fact that (in mental health research), most trials are not even sufficiently powered to detect the main effect of the intervention \citep{de2022statistical}.
+    \item In a similar vein, "post-hoc" power analyses are often conducted (or requested), e.g. to calculate the power of a trial based on its final sample size and detect effect size (often with the intention to check if there is a "true" effect that the trial was simply not powered to detect). This approach is circular and logically flawed, since the observed power is simply a function of the $P$ value \citep{hoenig2001abuse, althouse2021post}.
+\end{itemize} \vspace{1mm} \\
+
+    \end{tabular}
+\end{table}
+
+% table continued %
+\begin{table}[!htbp]
+    \footnotesize
+    \begin{tabular}{  p{3cm}  p{11cm} }
+\vspace{1mm}
+\emph{Reporting} 
+
+& \vspace{1mm} There is evidence that the quality of clinical trial reports has improved substantially since journals started adopting the Consolidated Standards of Reporting Trials \cite[CONSORT; ][]{kane2007reporting, plint2006does}. Nevertheless, the reporting of RCT results in mental health research remains suboptimal \citep{dal2017prudence, song2017assessing}.  \newline
+
+In the abstract, for example, trialists often fail to report methods of randomization and/or allocation concealment, or do not disclose the funding source. \newline
+
+Another concern is selective reporting. Still, many trials are not preregistered in a clinical trial registry; statistical analysis plans (SAPs) provided in these registrations are often vague. This makes it easier to conceal questionable research practices such as selective outcome reporting (i.e., only reporting outcomes that fit the researcher's objective) or "outcome switching" \citep{altman2017harms} in clinical trial reports.
+
+\vspace{2.5mm} \\
+        \bottomrule
+    \end{tabular}
+    \vspace{20cm}
+\end{table}
+
+\clearpage

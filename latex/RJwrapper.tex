@@ -1,0 +1,233 @@
+\documentclass[a4paper, 12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{RJournal}
+\usepackage{amsmath,amssymb,array}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{wrapfig}
+\usepackage{longtable}
+\usepackage[usenames,dvipsnames]{color}   
+\usepackage[export]{adjustbox}
+\usepackage{float}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{makecell}
+\usepackage{imakeidx}
+\usepackage{hyperref}
+\usepackage{orcidlink}
+
+
+\definecolor{superlightgray}{rgb}{0.97, 0.97, 0.97}
+\definecolor{codeBlue}{RGB}{44,35,255}
+\definecolor{codeGreen}{RGB}{110,137,109}
+\definecolor{commentGreen}{RGB}{87,146,131}
+\definecolor{sBlue}{RGB}{115,129,171}
+\definecolor{mintygreen}{RGB}{178, 208, 149}
+\definecolor{lightgreen}{RGB}{17, 237, 131}
+\definecolor{shadecolor}{RGB}{245, 245, 245}
+\definecolor{lightgrey}{RGB}{235, 235, 235}
+\definecolor{darklightgrey}{RGB}{189, 189, 189}
+\definecolor{darkdarklightgrey}{RGB}{100, 100, 100}
+\definecolor{aliceblue}{rgb}{0.94, 0.97, 1.0}
+\definecolor{babypink}{RGB}{255, 245, 245}
+\definecolor{dodgerblue}{RGB}{30,144,255}
+\definecolor{burgundyred}{RGB}{77, 0, 19}
+
+\newenvironment{box-info}[1]
+  {
+  \begin{itemize}
+  \renewcommand{\labelitemi}{
+    \raisebox{-.7\height}[0pt][0pt]{
+      {\setkeys{Gin}{width=3em,keepaspectratio}
+        \includegraphics{images/info.png}}
+    }
+  }
+  \setlength{\fboxsep}{1em}
+  \begin{blackbox}
+  \item
+  }
+  {
+  \end{blackbox}
+  \end{itemize}
+ }
+
+ \newenvironment{box-info-continued}[1]
+  {
+  \begin{itemize}
+  \renewcommand{\labelitemi}{
+    \raisebox{-.7\height}[0pt][0pt]{
+      {\setkeys{Gin}{width=3em,keepaspectratio}
+        \includegraphics{images/info2.png}}
+    }
+  }
+  \setlength{\fboxsep}{1em}
+  \begin{blackbox}
+  \item
+  }
+  {
+  \end{blackbox}
+  \end{itemize}
+ }
+
+ \newenvironment{grey-box}[1]
+  {
+  \begin{greybox}
+  }
+  {
+  \end{greybox}
+ }
+ 
+ \newenvironment{box-important}[1]
+  {
+  \begin{itemize}
+  \renewcommand{\labelitemi}{
+    \raisebox{-.7\height}[0pt][0pt]{
+      {\setkeys{Gin}{width=3em,keepaspectratio}
+        \includegraphics{images/important.png}}
+    }
+  }
+  \setlength{\fboxsep}{1em}
+  \begin{blackbox2}
+  \item
+  }
+  {
+  \end{blackbox2}
+  \end{itemize}
+  }
+
+ \newenvironment{box-important-continued}[1]
+  {
+  \begin{itemize}
+  \renewcommand{\labelitemi}{
+    \raisebox{-.7\height}[0pt][0pt]{
+      {\setkeys{Gin}{width=3em,keepaspectratio}
+        \includegraphics{images/info2.png}}
+    }
+  }
+  \setlength{\fboxsep}{1em}
+  \begin{blackbox2}
+  \item
+  }
+  {
+  \end{blackbox2}
+  \end{itemize}
+  }
+
+\makeatletter
+\pretocmd{\section}{\addtocontents{toc}{\protect\addvspace{15\p@}}}{}{}
+\makeatother
+
+ \renewcommand\bibname{References}
+
+\newtcolorbox{blackbox}{
+  before=\bigskip\centering,
+  after=\bigskip,
+  colback=aliceblue, %lightgrey
+  colframe=darklightgrey,
+  coltext=black,
+  boxsep=5pt,
+  arc=0pt}
+
+  \newtcolorbox{greybox}{
+  colback=lightgrey, %lightgrey
+  colframe=darklightgrey,
+  coltext=black,
+  boxsep=0pt,
+  arc=0pt}
+  
+  \newtcolorbox{blackbox2}{
+  before=\bigskip\centering,
+  after=\bigskip,
+  colback=babypink, %lightgrey
+  colframe=darklightgrey,
+  coltext=black,
+  boxsep=5pt,
+  arc=0pt}
+
+
+\newtcbox{\bluebadge}[1][red]{
+  on line, 
+  arc=2pt,
+  colback=dodgerblue,
+  colframe=dodgerblue,
+  fontupper=\color{white},
+  boxrule=1pt, 
+  boxsep=0pt,
+  left=6pt,
+  right=6pt,
+  top=2pt,
+  bottom=2pt
+}
+
+\newtcbox{\graybadge}[1][red]{
+  on line, 
+  arc=2pt,
+  colback=lightgrey,
+  colframe=lightgrey,
+  fontupper=\color{white},
+  boxrule=1pt, 
+  boxsep=0pt,
+  left=6pt,
+  right=6pt,
+  top=2pt,
+  bottom=2pt
+}
+
+
+\lstset{ 
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize\ttfamily, % the size of the fonts that are used for the code
+  numbers=none,                   % where to put the line-numbers
+  numberstyle=\tiny\color{Blue},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it is 1, each line will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{superlightgray},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=true,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{superlightgray},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  keywordstyle=\color{codeBlue},      % keyword style
+  commentstyle=\color{gray},   % comment style
+  stringstyle=\color{commentGreen},     % string literal style
+  basewidth=0.52em,
+  framesep=13pt,
+  xleftmargin=13pt,
+  xrightmargin=13pt
+} 
+
+%% load any required packages FOLLOWING this line
+%%%% A simple MakeIndex style
+\begin{filecontents*}{\jobname.mst}
+headings_flag 1
+heading_prefix "{\\textbf{"
+heading_suffix "}}\\nopagebreak\n"
+\end{filecontents*}
+%%% end
+\indexsetup{level=\section}
+\makeindex
+
+\setcounter{secnumdepth}{0}
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+%% do not edit, for illustration only
+\sectionhead{Tutorial}
+\volume{XX}
+\volnumber{YY}
+\year{20ZZ}
+\month{AAAA}
+
+%% replace RJtemplate with your article
+\begin{article}
+  \input{manuscript}
+\end{article}
+
+\end{document}
