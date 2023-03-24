@@ -1,0 +1,355 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                                         #
+#               EVALUATION OF RANDOMIZED CONTROLLED TRIALS:               #
+#         A PRIMER AND TUTORIAL FOR MENTAL HEALTH RESEARCHERS             #
+#                                                                         #
+#                                                                         #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# 0. Dataset Emulation ----------------------------------------------------     
+
+## 0.1 Load Dependencies --------------------------------------------------
+
+pacman::p_load(
+  protectr,   # Non-public package used to retrieve trial data 
+  mice,
+  miceadds,
+  mitml,
+  purrr,
+  dplyr,
+  simstudy,
+  sjstats,
+  ggplot2
+)
+
+set.seed(123)
+
+
+## 0.2 Create Data from Warehouse RCTs -------------------------------------    
+
+db <- get.db()
+prevdep_406 <- get.data("prevdep_406", merge = "intersection", glimpse = F)
+prevdep_204 <- get.data("prevdep_204", merge = "intersection", glimpse = F)
+
+L <- list(prevdep_406, prevdep_204)
+names <- Reduce(intersect, lapply(L, names))
+merge(prevdep_406, prevdep_204, all = TRUE) -> dat
+dat <- dat[names]
+names
+
+within(dat,{
+  sex = as.factor(sex)
+  degree = as.factor(degree)
+  prevtraining = as.factor(prevtraining)
+  prevpsychoth = as.factor(prevpsychoth)
+  rel = as.factor(rel)
+  child = as.factor(child)
+  employ = as.factor(employ)
+}) %>% 
+  select(id, group, sex, age, degree,
+         prevtraining, prevpsychoth, sess,
+         rel, child, employ, depmed,
+         ceq, atsphs.0,
+         cesd.0, cesd.1, cesd.2,
+         badssf.0, badssf.1, badssf.2,
+         hadsa.0, hadsa.1, hadsa.2) -> dat
+
+skimr::skim(dat)
+
+
+
+## 0.3 Simulate Demographics ----------------------------------------------
+
+rm(def)
+
+### 0.3.1 Continuous Variables -------------------------------------------- 
+
+#### 0.3.1.1 Age ----------------------------------------------------------
+
+mean(dat$age)
+var(dat$age)
+def <- defData(varname = "age", dist = "normal", formula = 45,
+               var = 140)
+
+
+### 0.3.2 Dichotomous Variables ------------------------------------------- 
+
+#### 0.3.2.1 Sex ----------------------------------------------------------
+
+sjstats::prop(dat, "sex == 1", na.rm = TRUE)
+def <- defData(def, varname = "sex", dist = "binary", 
+               formula = "0.24", link = "logit")
+
+#### 0.3.2.2 Previous Psychotherapy ---------------------------------------
+
+sjstats::prop(dat, "prevpsychoth == 1", na.rm = TRUE)
+def <- defData(def, varname = "prevpsychoth", dist = "binary", 
+               formula = "0.42", link = "identity")
+
+#### 0.3.2.3 Previous Health Training -------------------------------------
+
+sjstats::prop(dat, "prevtraining == 1", na.rm = TRUE)
+def <- defData(def, varname = "prevtraining", dist = "binary", 
+               formula = "0.22", link = "identity")
+
+#### 0.3.2.4 Children (yes/no) -------------------------------------------
+
+sjstats::prop(dat, "child == 1", na.rm = TRUE)
+def <- defData(def, varname = "child", dist = "binary", 
+               formula = "0.57", link = "identity")
+
+#### 0.3.2.5 Employment --------------------------------------------------
+
+sjstats::prop(dat, "employ == 1", na.rm = TRUE)
+def <- defData(def, varname = "employ", dist = "binary", 
+               formula = "0.85", link = "identity")
+
+
+
+### 0.3.3 Categorical Variables -------------------------------------------- 
+
+#### 0.3.3.1 Relationship status -------------------------------------------
+
+genCatFormula(0.30, 0.54, 0.15, 0.01)
+sjstats::prop(dat, "rel == 0", na.rm = TRUE)
+
+def <- defData(def, varname = "rel", dist = "categorical", 
+               formula = "0.3;0.54;0.15;0.01")
+
+
+#### 0.3.3.2 Education ----------------------------------------------------
+
+genCatFormula(0, 0.03, 0.32, 0.62, 0.03)
+sjstats::prop(dat, "degree == 4", na.rm = TRUE)
+
+def <- defData(def, varname = "degree", dist = "categorical", 
+               formula = "0;0.03;0.32;0.62;0.03")
+
+
+
+## 0.4 Simulate Baseline Questionnaires ------------------------------------
+
+### 0.4.1 Depression (CES-D) -----------------------------------------------
+
+def <- defData(def, varname = "cesd.0", dist = "normal", formula = 27,
+               variance = 58)
+
+### 0.4.2 Help-Seeking Attitudes (ATSPHS) ----------------------------------
+
+def <- defData(def, varname = "atsphs.0", dist = "normal", formula = 14,
+               variance = 6)
+
+### 0.4.3 Credibility & Expectancy (CEQ) -----------------------------------
+
+def <- defData(def, varname = "ceq", dist = "normal", formula = 35,
+               variance = 74)
+
+### 0.4.4 Behavioral Activation (BADS-SF) ----------------------------------
+
+def <- defData(def, varname = "badssf.0", dist = "normal", formula = 26,
+               variance = 39)
+
+### 0.4.5 Anxiety (HADS-A) ------------------------------------------------
+
+def <- defData(def, varname = "hadsa.0", dist = "normal", formula = 10,
+               variance = 10)
+rm(dd)
+
+
+
+## 0.5 Power Calculation --------------------------------------------------
+
+# Power for minimal important differnce
+pwr::pwr.t.test(d = 0.24, sig.level = 0.05 , power = 0.8, 
+                type = c("two.sample"))
+
+# n = 273 per group 
+dd <- genData(546, def)
+
+
+## 0.6 Simulate Outcomes ---------------------------------------------------
+
+dd <- trtAssign(dd, n = 2, balanced = TRUE,
+                grpName = "group")
+
+
+dat.cg <- dat %>% filter(group == 0)
+dat.ig <- dat %>% filter(group == 1)
+
+
+### 0.6.1 Depression ------------------------------------------------------
+
+dc <- defCondition(condition = "group == 0", formula = "23",
+                   variance = 87, dist = "normal")
+
+dc <- defCondition(dc, condition = "group == 1", formula = "17",
+                   variance = 74, dist = "normal")
+
+dd <- addCondition(dc, dd, newvar = "cesd.1")
+
+dc <- defCondition(condition = "group == 0", formula = "22",
+                   variance = 94, dist = "normal")
+
+dc <- defCondition(dc, condition = "group == 1", formula = "17",
+                   variance = 84, dist = "normal")
+
+dd <- addCondition(dc, dd, newvar = "cesd.2")
+
+
+### 0.6.2 Anxiety ---------------------------------------------------------
+
+
+dc <- defCondition(condition = "group == 0", formula = "9",
+                   variance = 12, dist = "normal")
+
+dc <- defCondition(dc, condition = "group == 1", formula = "7",
+                   variance = 12, dist = "normal")
+
+dd <- addCondition(dc, dd, newvar = "hadsa.1")
+
+dc <- defCondition(condition = "group == 0", formula = "9",
+                   variance = 14, dist = "normal")
+
+dc <- defCondition(dc, condition = "group == 1", formula = "7",
+                   variance = 13, dist = "normal")
+
+dd <- addCondition(dc, dd, newvar = "hadsa.2")
+
+
+### 0.6.3 Behavioral Activation -------------------------------------------
+
+dc <- defCondition(condition = "group == 0", formula = "27",
+                   variance = 46, dist = "normal")
+
+dc <- defCondition(dc, condition = "group == 1", formula = "30",
+                   variance = 52, dist = "normal")
+
+dd <- addCondition(dc, dd, newvar = "badssf.1")
+
+dc <- defCondition(condition = "group == 0", formula = "27",
+                   variance = 50, dist = "normal")
+
+dc <- defCondition(dc, condition = "group == 1", formula = "28",
+                   variance = 63, dist = "normal")
+
+dd <- addCondition(dc, dd, newvar = "badssf.2")
+
+
+
+## 0.7 Data Amputation ---------------------------------------------------
+
+### 0.7.1 MAR Mechanism --------------------------------------------------
+
+dd$miss.cond.1 <- NULL
+dd$miss.cond.2 <- NULL
+
+amp <- ampute(dd, mech = "MAR")
+amp.data <- amp$data
+
+prop <- amp$prop
+prop <- 0.3
+
+pattern <- amp$patterns
+pattern[, names(pattern) %in% c("cesd.1", "cesd.2", "hadsa.1", "hadsa.2",
+                                 "badssf.1", "badssf.2")] <- 0
+pattern[, !names(pattern) %in% c("cesd.1", "cesd.2", "hadsa.1", "hadsa.2",
+                                 "badssf.1", "badssf.2")] <- 1
+
+weights <- amp$weights
+rownames(weights) <- colnames(weights)
+weights[c("age", "sex"), c("cesd.1", "cesd.2", "hadsa.1",
+                  "hadsa.2", "badssf.1", "badssf.2")] <- 2
+diag(weights) <- 0
+
+
+amp2.mar <- ampute(dd, mech = "MAR", prop = prop, 
+                   patterns = pattern, weights = weights)
+
+data <- amp2.mar$amp
+
+
+### 0.7.2 MNAR Mechanism -------------------------------------------------
+
+dd$miss.cond.1 <- sample(0:1, 546, replace = T)
+dd$miss.cond.2 <- sample(0:4, 546, replace = T)
+
+amp2.mnar <- ampute(dd, mech = "MAR", prop = prop)
+
+weights <- amp2.mnar$weights
+rownames(weights) <- colnames(weights)
+
+pattern <- amp2.mnar$patterns
+pattern[, names(pattern) %in% c("cesd.1", "cesd.2", "hadsa.1", "hadsa.2",
+                                "badssf.1", "badssf.2")] <- 0
+pattern[, !names(pattern) %in% c("cesd.1", "cesd.2", "hadsa.1", "hadsa.2",
+                                 "badssf.1", "badssf.2")] <- 1
+weights[c(!names(pattern) %in% 
+            c("cesd.1", "cesd.2", "hadsa.1", "hadsa.2",
+              "badssf.1", "badssf.2")),
+        c("cesd.1", "cesd.2", "hadsa.1",
+          "hadsa.2", "badssf.1", "badssf.2")] <- 0
+
+weights["miss.cond.1", c("cesd.1", "cesd.2", "hadsa.1",
+                         "hadsa.2", "badssf.1", "badssf.2")] <- 10
+
+weights["miss.cond.2", c("cesd.1", "cesd.2", "hadsa.1",
+                         "hadsa.2", "badssf.1", "badssf.2")] <- 10
+diag(weights) <- 0
+
+amp2.mnar <- ampute(dd, mech = "MAR", prop = prop, patterns = pattern)
+data.mnar <- amp2.mnar$amp
+amp2.mnar$weights
+
+
+### 0.7.3 Correct implausible values and set classes ------------------------
+
+data[data$cesd.1 < 0 & !is.na(data$cesd.1), ]$cesd.1 <- 0
+data[data$cesd.2 < 0 & !is.na(data$cesd.2), ]$cesd.2 <- 0
+
+data[data$hadsa.0 < 0 & !is.na(data$hadsa.0), ]$hadsa.0 <- 0
+data[data$hadsa.1 < 0 & !is.na(data$hadsa.1), ]$hadsa.1 <- 0
+data[data$hadsa.2 < 0 & !is.na(data$hadsa.2), ]$hadsa.2 <- 0
+
+data[data$badssf.1 < 0 & !is.na(data$badssf.1), ]$badssf.1 <- 0
+data[data$badssf.2 < 0 & !is.na(data$badssf.2), ]$badssf.2 <- 0
+
+data[data$age < 18, ]$age <- 18
+
+data.mnar[data.mnar$cesd.1 < 0 & !is.na(data.mnar$cesd.1), ]$cesd.1 <- 0
+data.mnar[data.mnar$cesd.2 < 0 & !is.na(data.mnar$cesd.2), ]$cesd.2 <- 0
+
+data.mnar[data.mnar$hadsa.0 < 0 & !is.na(data.mnar$hadsa.0), ]$hadsa.0 <- 0
+data.mnar[data.mnar$hadsa.1 < 0 & !is.na(data.mnar$hadsa.1), ]$hadsa.1 <- 0
+data.mnar[data.mnar$hadsa.2 < 0 & !is.na(data.mnar$hadsa.2), ]$hadsa.2 <- 0
+
+data.mnar[data.mnar$badssf.1 < 0 & !is.na(data.mnar$badssf.1), ]$badssf.1 <- 0
+data.mnar[data.mnar$badssf.2 < 0 & !is.na(data.mnar$badssf.2), ]$badssf.2 <- 0
+
+data.mnar[data.mnar$age < 18, ]$age <- 18
+
+within(data,{
+  sex = as.factor(sex)
+  degree = as.factor(degree)
+  prevtraining = as.factor(prevtraining)
+  prevpsychoth = as.factor(prevpsychoth)
+  rel = as.factor(rel)
+  child = as.factor(child)
+  employ = as.factor(employ)
+}) -> data
+
+within(data.mnar,{
+  sex = as.factor(sex)
+  degree = as.factor(degree)
+  prevtraining = as.factor(prevtraining)
+  prevpsychoth = as.factor(prevpsychoth)
+  rel = as.factor(rel)
+  child = as.factor(child)
+  employ = as.factor(employ)
+}) -> data.mnar
+
+
+
+## 0.8 Save data ---------------------------------------------------------------
+
+save(data, file = "data/data.mar.rda")
+save(data.mnar, file = "data/data.mnar.rda") # Used in the tutorial
